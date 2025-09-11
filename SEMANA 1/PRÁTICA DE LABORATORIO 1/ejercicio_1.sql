@@ -25,3 +25,10 @@ INSERT INTO estudiantes VALUES
 (1077, 'Roberto', 'Jiménez Paz', 'Ingenieria de Software', 5, 17.0),
 (1084, 'Carmen', 'Vargas León', 'Ingenieria de Industrial', 7, 16.3),
 (1098, 'Miguel', 'Santos Ríos', 'Ingenieria de Sistemas', 4, 15.1);
+
+
+CREATE TABLE estudiantes_heap AS
+SELECT * FROM estudiantes;
+
+-- Verificar que no tiene indices
+SELECT * FROM pg_indexes WHERE tablename = 'estudiantes_heap';
