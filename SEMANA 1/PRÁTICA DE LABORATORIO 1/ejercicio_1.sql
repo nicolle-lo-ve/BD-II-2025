@@ -84,3 +84,23 @@ SELECT
 FROM estudiantes
 GROUP BY hash_estudiante(id_estudiante)
 ORDER BY posicion_hash;
+
+-- Crear tabla principal particionada
+CREATE TABLE estudiantes_hash (
+	id_estudiante INTEGER,
+	nombres VARCHAR(50) NOT NULL,
+	apellidos VARCHAR(50) NOT NULL,
+	carrera VARCHAR(30),
+	semestre INTEGER,
+	promedio DECIMAL(4,2)
+) PARTITION BY HASH (id_estudiante);
+
+-- Crear particiones
+CREATE TABLE estudiantes_hash_p0 PARTITION OF estudiantes_hash 
+	FOR VALUES WITH (MODULUS 4, REMAINDER 0);
+CREATE TABLE estudiantes_hash_p1 PARTITION OF estudiantes_hash 
+	FOR VALUES WITH (MODULUS 4, REMAINDER 1);
+CREATE TABLE estudiantes_hash_p2 PARTITION OF estudiantes_hash 
+	FOR VALUES WITH (MODULUS 4, REMAINDER 2);
+CREATE TABLE estudiantes_hash_p3 PARTITION OF estudiantes_hash 
+	FOR VALUES WITH (MODULUS 4, REMAINDER 3);
