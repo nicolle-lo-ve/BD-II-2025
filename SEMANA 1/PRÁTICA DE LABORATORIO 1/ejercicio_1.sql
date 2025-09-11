@@ -117,3 +117,48 @@ FROM pg_class c     -- Desde la tabla del sistema pg_class (alias 'c')
 JOIN pg_namespace n ON c.relnamespace = n.oid     -- Unir con pg_namespace para obtener el schema
 WHERE relname LIKE 'estudiantes_hash_%'
 ORDER BY relname;
+
+-- Función para isnertar datos de prueba 
+
+CREATE OR REPLACE FUNCTION insertar_estudiantes_masivo()
+RETURNS VOID AS $$
+DECLARE
+	i INTEGER;
+	carreras TEXT[] := ARRAY['Ingeniería de Software','Ingeniería de Sistemas', 'Ingeniería Indsutrial'];
+	nombres TEXT[] := ARRAY['Juan','María', 'Carlos','Ana', 'Luis', 'Carmen', 'José', 'Patricia' ];
+	apellidos TEXT[] := ARRAY['García','López', 'Martínez','González', 'Rodríguez', 'Pérez', 'Sánchez'];
+BEGIN
+	FOR i IN 2000..3000 LOOP
+		INSERT INTO estudiantes_heap VALUES(
+			i,
+			nombres[(i % 8) + 1],
+			apellidos[(i % 7) + 1],
+			carreras[(i % 3) + 1],
+			(i % 8) + 1,
+			14.0 + (i % 5)
+		);
+		
+		INSERT INTO estudiantes_ordenados VALUES(
+			i,
+			nombres[(i % 8) + 1],
+			apellidos[(i % 7) + 1],
+			carreras[(i % 3) + 1],
+			(i % 8) + 1,
+			14.0 + (i % 5)
+		);
+
+		INSERT INTO estudiantes_hash VALUES(
+			i,
+			nombres[(i % 8) + 1],
+			apellidos[(i % 7) + 1],
+			carreras[(i % 3) + 1],
+			(i % 8) + 1,
+			14.0 + (i % 5)
+		);
+	END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Ejecutar la función
+SELECT insertar_estudiantes_masivo();
+
