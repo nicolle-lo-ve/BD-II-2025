@@ -32,3 +32,13 @@ SELECT * FROM estudiantes;
 
 -- Verificar que no tiene indices
 SELECT * FROM pg_indexes WHERE tablename = 'estudiantes_heap';
+
+-- Activar medición de tiempo
+\timing on
+
+-- Busqueda secuecnial completa 
+SELECT * FROM estudiantes_heap WHERE id_estudiante = 1077;
+
+-- Contar cuántos registros se examinaron
+EXPLAIN (ANALYZE, BUFFERS)
+SELECT * FROM estudiantes_heap WHERE id_estudiante = 1077;
