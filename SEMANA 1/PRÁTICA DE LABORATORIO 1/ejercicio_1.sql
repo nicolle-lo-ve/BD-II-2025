@@ -110,9 +110,10 @@ INSERT INTO estudiantes_hash SELECT * FROM estudiantes;
 
 -- Ver distribución por partición
 SELECT
-	schemaname,
-	tablename,
-	n_tup_ins as registros_insertados
-FROM pg_stat_user_tables
-WHERE tablename LIKE 'estudiantes_hash_%'
-ORDER BY tablename;
+	nspname as schemaname,
+	relname as tablename,
+	reltuples as registros_insertados
+FROM pg_class c     -- Desde la tabla del sistema pg_class (alias 'c')
+JOIN pg_namespace n ON c.relnamespace = n.oid     -- Unir con pg_namespace para obtener el schema
+WHERE relname LIKE 'estudiantes_hash_%'
+ORDER BY relname;
