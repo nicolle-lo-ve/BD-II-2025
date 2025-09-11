@@ -42,3 +42,10 @@ SELECT * FROM estudiantes_heap WHERE id_estudiante = 1077;
 -- Contar cuántos registros se examinaron
 EXPLAIN (ANALYZE, BUFFERS)
 SELECT * FROM estudiantes_heap WHERE id_estudiante = 1077;
+
+CREATE TABLE estudiantes_ordenados AS
+SELECT * FROM estudiantes ORDER BY id_estudiante;
+
+-- Crear índice para simular orden físico
+CREATE INDEX idx_estudiantes_ordenados_id
+ON estudiantes_ordenados(id_estudiante);
