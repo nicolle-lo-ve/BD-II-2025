@@ -104,3 +104,15 @@ CREATE TABLE estudiantes_hash_p2 PARTITION OF estudiantes_hash
 	FOR VALUES WITH (MODULUS 4, REMAINDER 2);
 CREATE TABLE estudiantes_hash_p3 PARTITION OF estudiantes_hash 
 	FOR VALUES WITH (MODULUS 4, REMAINDER 3);
+
+-- Insertar datos
+INSERT INTO estudiantes_hash SELECT * FROM estudiantes;
+
+-- Ver distribución por partición
+SELECT
+	schemaname,
+	tablename,
+	n_tup_ins as registros_insertados
+FROM pg_stat_user_tables
+WHERE tablename LIKE 'estudiantes_hash_%'
+ORDER BY tablename;
