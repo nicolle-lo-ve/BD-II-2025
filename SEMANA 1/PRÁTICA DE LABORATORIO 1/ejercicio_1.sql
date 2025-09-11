@@ -13,3 +13,15 @@ CREATE TABLE estudiantes (
 	semestre INTEGER,
 	promedio DECIMAL(4,2)
 );
+
+INSERT INTO estudiantes VALUES
+(1001, 'Ana', 'García López', 'Ingenieria de Software', 6, 16.5),
+(1015, 'Carlos', 'Mendoza Silva', 'Ingenieria de Software', 5, 15.8),
+(1028, 'Maria', 'Torres Vega', 'Ingenieria de Sistemas', 7, 17.2),
+(1035, 'José', 'Ramirez Cruz', 'Ingenieria de Software', 4, 14.9),
+(1042, 'Lucía', 'Herrea Díaz', 'Ingenieria de Industrial', 8, 18.1),
+(1056, 'Diego', 'Castillo Ruíz', 'Ingenieria de Software', 6, 16.8),
+(1063, 'Patricia', 'Morales Soto', 'Ingenieria de Sisitemas', 3, 15.4),
+(1077, 'Roberto', 'Jiménez Paz', 'Ingenieria de Software', 5, 17.0),
+(1084, 'Carmen', 'Vargas León', 'Ingenieria de Industrial', 7, 16.3),
+(1098, 'Miguel', 'Santos Ríos', 'Ingenieria de Sistemas', 4, 15.1);
