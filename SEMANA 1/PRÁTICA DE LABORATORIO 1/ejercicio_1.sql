@@ -162,3 +162,17 @@ $$ LANGUAGE plpgsql;
 -- Ejecutar la función
 SELECT insertar_estudiantes_masivo();
 
+-- Comparar tiemp de búsqueda exacta
+--\timing on
+
+--HEAP
+SELECT COUNT (*) FROM estudiantes_heap WHERE id_estudiante = 2500;
+
+-- ORDENADO
+SELECT COUNT (*) FROM estudiantes_ordenados WHERE id_estudiante = 2500;
+
+-- HASH
+SELECT COUNT (*) FROM estudiantes_hash WHERE id_estudiante = 2500;
+
+--\timing of
+
