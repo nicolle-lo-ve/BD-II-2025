@@ -176,3 +176,12 @@ SELECT COUNT (*) FROM estudiantes_hash WHERE id_estudiante = 2500;
 
 --\timing of
 
+-- Ver tamaño de tablas
+SELECT
+
+	schemaname,
+	tablename,
+	pg_size_pretty(pg_total_relation_size(schemaname||'.'||tablename)) as tamano
+FROM pg_tables
+WHERE tablename LIKE 'estudiantes_%'
+ORDER BY pg_total_relation_size(schemaname||'.'||tablename) DESC;
