@@ -75,3 +75,12 @@ SELECT
 	hash_estudiante(id_estudiante)as posicion_hash
 FROM estudiantes
 ORDER BY hash_estudiante(id_estudiante),id_estudiante;
+
+-- Identificar colisiones
+SELECT 
+	hash_estudiante(id_estudiante) as posicion_hash,
+	COUNT(*) as cantidad_registros,
+	ARRAY_AGG(id_estudiante ORDER BY id_estudiante) as ids_en_posicion
+FROM estudiantes
+GROUP BY hash_estudiante(id_estudiante)
+ORDER BY posicion_hash;
