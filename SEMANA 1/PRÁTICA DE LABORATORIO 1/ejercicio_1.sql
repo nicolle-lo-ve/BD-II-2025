@@ -43,6 +43,15 @@ SELECT * FROM estudiantes_heap WHERE id_estudiante = 1077;
 EXPLAIN (ANALYZE, BUFFERS)
 SELECT * FROM estudiantes_heap WHERE id_estudiante = 1077;
 
+-- Búsqueda en tabla ordenada
+EXPLAIN (ANALYZE, BUFFERS)
+SELECT * FROM estudiantes_ordenados WHERE id_estudiante = 1077;
+
+-- Búsqueda por rango (ventaja de estructura ordenada)
+EXPLAIN (ANALYZE, BUFFERS)
+SELECT * FROM estudiantes_ordenados
+WHERE id_estudiante BETWEEN 1030 AND 1080;
+
 CREATE TABLE estudiantes_ordenados AS
 SELECT * FROM estudiantes ORDER BY id_estudiante;
 
