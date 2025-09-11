@@ -58,3 +58,11 @@ SELECT * FROM estudiantes ORDER BY id_estudiante;
 -- Crear índice para simular orden físico
 CREATE INDEX idx_estudiantes_ordenados_id
 ON estudiantes_ordenados(id_estudiante);
+
+-- Crear función hash simple
+CREATE OR REPLACE FUNCTION hash_estudiante(id INTEGER )
+RETURNS INTEGER AS $$
+BEGIN
+	RETURN id % 7;
+END;
+$$ LANGUAGE plpgsql;
