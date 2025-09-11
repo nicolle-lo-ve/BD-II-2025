@@ -66,3 +66,12 @@ BEGIN
 	RETURN id % 7;
 END;
 $$ LANGUAGE plpgsql;
+
+-- Ver distribución hash
+SELECT
+	id_estudiante,
+	nombres,
+	apellido,
+	hash_estudiante(id_estudiante)as posicion_hash
+FROM estudiantes
+ORDER BY hash_estudiante(id_estudiante),id_estudiante;
