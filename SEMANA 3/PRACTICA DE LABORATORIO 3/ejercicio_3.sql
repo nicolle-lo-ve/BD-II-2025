@@ -40,7 +40,7 @@ CREATE TABLE detalle_pedidos(
 -- PASO 1.4: INSERTAR DATOS DE PREUBA
 
 -- insertar clientes (10,000 registros)
-INSERT INTO clientes (nombres, email, ciudad, fecha_registro, activo)
+INSERT INTO clientes (nombre, email, ciudad, fecha_registro, activo)
 SELECT
   'Cliente_' || generate_series,
   'Cliente' || generate_series || '@email.com',
@@ -50,13 +50,13 @@ SELECT
     WHEN 2 THEN 'Trujillo'
     WHEN 3 THEN 'Cusco'
     ELSE 'Piura'
-  END
+  END,
   CURRENT_DATE - (generate_series % 365),
   (generate_series % 10) != 0
 FROM generate_series(1,10000);
 
 -- insertar productos (1,000 registros)
-INSERT INTO clientes (nombre_prodcuto, categoria, precio, stock)
+INSERT INTO productos (nombre_producto, categoria, precio, stock)
 SELECT
   'Producto_' || generate_series,
   CASE (generate_series % 4)
@@ -93,8 +93,7 @@ SELECT
 FROM generate_series(1, 150000);
 
 -- PARTE 2: ANÁLISIS DE PLANES DE EJECUCIÓN
-
--- PAso2.1: Consulta Básica sin Optimización
+-- Paso 2.1: Consulta Básica sin Optimización
 
 -- Consulta: Clientes de Lima con sus pedidos
 EXPLAIN (ANALYZE, BUFFERS)
@@ -102,7 +101,7 @@ SELECT c.nombre, COUNT(p.pedido_id) as total_pedidos
 FROM clientes c
 LEFT JOIN pedidos p ON c.cliente_id = p.cliente_id
 WHERE c.ciudad = 'Lima'
-goup by c.cliente_id, c.nombre
+group by c.cliente_id, c.nombre
 ORDER BY total_pedidos DESC;
 
 -- EJERCICIO 2.1
@@ -195,7 +194,7 @@ RESET enable_nestloop;
 -- Ver estadísticas actuales
 SELECT
 	schemaname,
-	tablename,
+	relname AS tablename,
 	n_tup_ins,
 	n_tup_upd,
 	n_tup_del,
@@ -238,7 +237,7 @@ SELECT COUNT(*) FROM clientes WHERE ciudad = 'Lima';
 EXPLAIN (ANALYZE, BUFFERS)
 SELECT c.nombre
 FROM clientes c
-WHERE c.clientes_id IN (
+WHERE c.cliente_id IN (
 	SELECT p.cliente_id
 	FROM pedidos p
 	WHERE p.total > 500
@@ -317,7 +316,7 @@ WITH ventas_mensuales AS (
 SELECT *
 FROM ranking_productos 
 WHERE rank_ventas <= 3
-ORDER BY ciudad. mes, rank_ventas;
+ORDER BY ciudad, mes, rank_ventas;
 
 -- Paso 7.2: Índices para Consultas Complejas
 -- índices adicionales para controlar la consulta anterior
