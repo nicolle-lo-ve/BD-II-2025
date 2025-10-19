@@ -657,3 +657,28 @@ LEFT JOIN detalle_pedido d ON d.codigo_producto = pr.codigo
 LEFT JOIN pedidos p ON p.id_pedido = d.id_pedido AND p.estado IN ('confirmado', 'enviado')
 GROUP BY pr.codigo, pr.nombre, pr.precio_unitario
 ORDER BY ingreso_total DESC NULLS LAST;
+
+-- Consulta 4: Pedidos cancelados con análisis de causas
+SELECT 
+    p.id_pedido,
+    p.fecha_pedido,
+    c.nombre_completo AS cliente,
+    p.monto_total,
+    pg.estado_pago,
+    pg.metodo_pago,
+    CASE 
+        WHEN pg.estado_pago = 'RECHAZADO' THEN 'Pago rechazado'
+        WHEN pg.id_pago IS NULL THEN 'Sin intento de pago'
+        ELSE 'Cancelación manual'
+    END AS motivo_cancelacion,
+    p.fecha_actualizacion AS fecha_cancelacion,
+    STRING_AGG(pr.nombre || ' (x' || d.cantidad || ')', ', ') AS productos
+FROM pedidos p
+JOIN clientes c ON c.id_cliente = p.id_cliente
+LEFT JOIN pagos pg ON pg.id_pedido = p.id_pedido
+LEFT JOIN detalle_pedido d ON d.id_pedido = p.id_pedido
+LEFT JOIN productos pr ON pr.codigo = d.codigo_producto
+WHERE p.estado = 'CANCELADO'
+GROUP BY p.id_pedido, p.fecha_pedido, c.nombre_completo, p.monto_total, 
+         pg.estado_pago, pg.metodo_pago, pg.id_pago, p.fecha_actualizacion
+ORDER BY p.fecha_actualizacion DESC;
