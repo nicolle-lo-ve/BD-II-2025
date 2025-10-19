@@ -354,3 +354,80 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+
+-- 2.3 FUNCIÓN: cancelar_pedido
+-- Cancela un pedido y restaura el stock
+-- Implementa validaciones y rollback basado en Lab 5
+
+
+CREATE OR REPLACE FUNCTION cancelar_pedido(
+    p_id_pedido INTEGER
+)
+RETURNS BOOLEAN AS $$
+DECLARE
+    v_estado_pedido VARCHAR(20);
+    v_producto RECORD;
+BEGIN
+    BEGIN
+        -- Obtener estado del pedido con bloqueo (Lab 6)
+        SELECT estado
+        INTO v_estado_pedido
+        FROM pedidos
+        WHERE id_pedido = p_id_pedido
+        FOR UPDATE;
+
+        IF NOT FOUND THEN
+            RAISE EXCEPTION 'El pedido % no existe', p_id_pedido;
+        END IF;
+
+        -- Validar que el pedido puede ser cancelado
+        IF v_estado_pedido NOT IN ('PENDIENTE', 'CONFIRMADO') THEN
+            RAISE EXCEPTION 'El pedido % no puede ser cancelado (estado: %)', 
+                p_id_pedido, v_estado_pedido;
+        END IF;
+
+        -- Restaurar stock de todos los productos del pedido
+        FOR v_producto IN 
+            SELECT d.codigo_producto, d.cantidad, p.stock_disponible
+            FROM detalle_pedido d
+            JOIN productos p ON p.codigo = d.codigo_producto
+            WHERE d.id_pedido = p_id_pedido
+        LOOP
+            -- Incrementar stock
+            UPDATE productos
+            SET stock_disponible = stock_disponible + v_producto.cantidad,
+                fecha_actualizacion = CURRENT_TIMESTAMP
+            WHERE codigo = v_producto.codigo_producto;
+
+            -- Registrar devolución en historial
+            INSERT INTO historial_stock (
+                codigo_producto, tipo_movimiento, cantidad,
+                stock_anterior, stock_nuevo, id_pedido_relacionado, observaciones
+            )
+            VALUES (
+                v_producto.codigo_producto,
+                'devolucion',
+                v_producto.cantidad,
+                v_producto.stock_disponible,
+                v_producto.stock_disponible + v_producto.cantidad,
+                p_id_pedido,
+                'Cancelación de pedido #' || p_id_pedido
+            );
+        END LOOP;
+
+        -- Actualizar estado del pedido
+        UPDATE pedidos
+        SET estado = 'CANCELADO',
+            fecha_actualizacion = CURRENT_TIMESTAMP
+        WHERE id_pedido = p_id_pedido;
+
+        RAISE NOTICE 'Pedido % cancelado exitosamente. Stock restaurado.', p_id_pedido;
+        RETURN TRUE;
+
+    EXCEPTION
+        WHEN OTHERS THEN
+            RAISE NOTICE 'Error al cancelar pedido: %', SQLERRM;
+            RETURN FALSE;
+    END;
+END;
+$$ LANGUAGE plpgsql;
