@@ -130,7 +130,7 @@ INSERT INTO clientes (nombre_completo, email, telefono, direccion_envio) VALUES
 
 CREATE OR REPLACE FUNCTION crear_pedido(
     p_id_cliente INTEGER,
-    p_productos JSON  -- Array de objetos: [{"codigo": "PROD-001", "cantidad": 2}, ...]
+    p_productos JSON  -- Array de objetos codigo y cantidad
 )
 RETURNS INTEGER AS $$
 DECLARE
@@ -155,7 +155,7 @@ BEGIN
 
         -- Crear el registro del pedido en estado pendiente
         INSERT INTO pedidos (id_cliente, estado, monto_total)
-        VALUES (p_id_cliente, 'pendiente', 0)
+        VALUES (p_id_cliente, 'PENDIENTE', 0)
         RETURNING id_pedido INTO v_id_pedido;
 
         -- Procesar cada producto del pedido
@@ -184,7 +184,7 @@ BEGIN
             END IF;
 
             -- Validar que el producto está activo
-            IF v_estado != 'activo' THEN
+            IF v_estado != 'ACTIVO' THEN
                 RAISE EXCEPTION 'El producto % no está disponible para venta', v_producto_nombre;
             END IF;
 
@@ -217,7 +217,7 @@ BEGIN
                 stock_anterior, stock_nuevo, id_pedido_relacionado, observaciones
             )
             VALUES (
-                v_codigo_producto, 'salida', v_cantidad,
+                v_codigo_producto, 'SALIDA', v_cantidad,
                 v_stock_anterior, v_stock_anterior - v_cantidad, v_id_pedido,
                 'Reserva de stock para pedido #' || v_id_pedido
             );
@@ -237,6 +237,119 @@ BEGIN
             -- Manejo de errores con rollback automático (Lab 5)
             RAISE NOTICE 'Error al crear pedido: %', SQLERRM;
             RETURN NULL;
+    END;
+END;
+$$ LANGUAGE plpgsql;
+
+-- 2.2 FUNCIÓN: procesar_pago
+-- Procesa el pago de un pedido con simulación de aprobación/rechazo
+-- Implementa rollback condicional basado en Lab 5 y Lab 6
+
+CREATE OR REPLACE FUNCTION procesar_pago(
+    p_id_pedido INTEGER,
+    p_metodo_pago VARCHAR(50),
+    p_referencia VARCHAR(100)
+)
+RETURNS BOOLEAN AS $$
+DECLARE
+    v_estado_pedido VARCHAR(20);
+    v_monto_pedido NUMERIC(12,2);
+    v_id_pago INTEGER;
+    v_pago_aprobado BOOLEAN;
+    v_numero_aleatorio INTEGER;
+BEGIN
+    BEGIN
+        -- Validar que el pedido existe y obtener su estado con bloqueo (Lab 6)
+        SELECT estado, monto_total
+        INTO v_estado_pedido, v_monto_pedido
+        FROM pedidos
+        WHERE id_pedido = p_id_pedido
+        FOR UPDATE;  -- Bloqueo para evitar pagos duplicados
+
+        IF NOT FOUND THEN
+            RAISE EXCEPTION 'El pedido % no existe', p_id_pedido;
+        END IF;
+
+        -- Validar que el pedido está en estado pendiente
+        IF v_estado_pedido != 'PENDIENTE' THEN
+            RAISE EXCEPTION 'El pedido % no puede ser pagado (estado actual: %)', 
+                p_id_pedido, v_estado_pedido;
+        END IF;
+
+        -- Registrar intento de pago en estado "procesando"
+        INSERT INTO pagos (id_pedido, metodo_pago, monto_pagado, estado_pago, referencia_transaccion)
+        VALUES (p_id_pedido, p_metodo_pago, v_monto_pedido, 'PROCESANDO', p_referencia)
+        RETURNING id_pago INTO v_id_pago;
+
+        -- Simular validación del pago (80% de aprobación)
+        -- Genera número aleatorio entre 1 y 10
+        v_numero_aleatorio := floor(random() * 10 + 1)::INTEGER;
+        v_pago_aprobado := (v_numero_aleatorio <= 8);
+
+        IF v_pago_aprobado THEN
+            -- PAGO APROBADO: Confirmar transacción
+            
+            -- Actualizar estado del pago
+            UPDATE pagos
+            SET estado_pago = 'aprobado'
+            WHERE id_pago = v_id_pago;
+
+            -- Actualizar estado del pedido
+            UPDATE pedidos
+            SET estado = 'CONFIRMADO',
+                fecha_actualizacion = CURRENT_TIMESTAMP
+            WHERE id_pedido = p_id_pedido;
+
+            RAISE NOTICE 'Pago aprobado para pedido %. Transacción confirmada.', p_id_pedido;
+            RETURN TRUE;
+
+        ELSE
+            -- PAGO RECHAZADO: Revertir reserva de stock (Lab 5 - Rollback)
+            
+            -- Actualizar estado del pago
+            UPDATE pagos
+            SET estado_pago = 'RECHAZADO'
+            WHERE id_pago = v_id_pago;
+
+            -- Restaurar stock de todos los productos del pedido
+            UPDATE productos p
+            SET stock_disponible = stock_disponible + d.cantidad,
+                fecha_actualizacion = CURRENT_TIMESTAMP
+            FROM detalle_pedido d
+            WHERE p.codigo = d.codigo_producto
+              AND d.id_pedido = p_id_pedido;
+
+            -- Registrar devolución en historial de stock
+            INSERT INTO historial_stock (
+                codigo_producto, tipo_movimiento, cantidad,
+                stock_anterior, stock_nuevo, id_pedido_relacionado, observaciones
+            )
+            SELECT 
+                d.codigo_producto, 
+                'devolucion',
+                d.cantidad,
+                p.stock_disponible - d.cantidad,
+                p.stock_disponible,
+                p_id_pedido,
+                'Devolución por pago rechazado - Pedido #' || p_id_pedido
+            FROM detalle_pedido d
+            JOIN productos p ON p.codigo = d.codigo_producto
+            WHERE d.id_pedido = p_id_pedido;
+
+            -- Actualizar estado del pedido a cancelado
+            UPDATE pedidos
+            SET estado = 'CANCELADO',
+                fecha_actualizacion = CURRENT_TIMESTAMP
+            WHERE id_pedido = p_id_pedido;
+
+            RAISE NOTICE 'Pago rechazado para pedido %. Stock restaurado.', p_id_pedido;
+            RETURN FALSE;
+        END IF;
+
+    EXCEPTION
+        WHEN OTHERS THEN
+            RAISE NOTICE 'Error al procesar pago: %', SQLERRM;
+            RETURN FALSE;
     END;
 END;
 $$ LANGUAGE plpgsql;
