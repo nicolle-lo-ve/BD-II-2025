@@ -546,3 +546,47 @@ FROM historial_stock
 WHERE id_pedido_relacionado = (SELECT MAX(id_pedido) FROM pedidos)
 ORDER BY fecha_movimiento DESC;
 
+-- 3.3 SIMULACIÓN DE DEADLOCK
+-- Basado en Lab 6 (Control de Concurrencia Distribuida)
+
+/*
+ESCENARIO DE DEADLOCK:
+- Transacción A: Actualiza PROD-001, luego PROD-002
+- Transacción B: Actualiza PROD-002, luego PROD-001
+- Orden inverso causa deadlock
+
+INSTRUCCIONES: Abrir DOS terminales y ejecutar EN PARALELO
+*/
+
+-- TERMINAL A:
+BEGIN;
+-- Bloquear PROD-001 primero
+UPDATE productos SET stock_disponible = stock_disponible - 1
+WHERE codigo = 'PROD-001';
+
+-- Esperar 7 segundos para permitir que Terminal B bloquee PROD-002
+SELECT pg_sleep(7);
+
+-- Intentar bloquear PROD-002 (causará deadlock)
+UPDATE productos SET stock_disponible = stock_disponible - 1
+WHERE codigo = 'PROD-002';
+
+COMMIT;
+
+
+-- TERMINAL B (ejecutar inmediatamente después de iniciar Terminal A):
+
+BEGIN;
+-- Bloquear PROD-002 primero
+UPDATE productos SET stock_disponible = stock_disponible - 1
+WHERE codigo = 'PROD-002';
+
+-- Esperar 2 segundos
+SELECT pg_sleep(2);
+
+-- Intentar bloquear PROD-001 (causará deadlock)
+UPDATE productos SET stock_disponible = stock_disponible - 1
+WHERE codigo = 'PROD-001';
+
+COMMIT;
+
