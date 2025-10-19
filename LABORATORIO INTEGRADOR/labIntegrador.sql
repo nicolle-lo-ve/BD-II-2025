@@ -17,6 +17,7 @@ CREATE TABLE productos (
     fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+
 -- Información de clientes registrados en el sistema
 CREATE TABLE clientes (
     id_cliente SERIAL PRIMARY KEY,
@@ -640,3 +641,19 @@ WHERE stock_disponible < stock_minimo
   AND estado = 'ACTIVO'
 ORDER BY stock_disponible ASC, codigo;
 
+-- Consulta 3: Reporte de ventas por producto (agregación)
+SELECT 
+    pr.codigo,
+    pr.nombre AS producto,
+    pr.precio_unitario AS precio_actual,
+    COUNT(DISTINCT d.id_pedido) AS total_pedidos,
+    SUM(d.cantidad) AS unidades_vendidas,
+    SUM(d.subtotal) AS ingreso_total,
+    AVG(d.precio_unitario) AS precio_promedio_venta,
+    MIN(d.precio_unitario) AS precio_minimo,
+    MAX(d.precio_unitario) AS precio_maximo
+FROM productos pr
+LEFT JOIN detalle_pedido d ON d.codigo_producto = pr.codigo
+LEFT JOIN pedidos p ON p.id_pedido = d.id_pedido AND p.estado IN ('confirmado', 'enviado')
+GROUP BY pr.codigo, pr.nombre, pr.precio_unitario
+ORDER BY ingreso_total DESC NULLS LAST;
