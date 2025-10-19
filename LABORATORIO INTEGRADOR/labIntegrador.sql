@@ -590,3 +590,33 @@ WHERE codigo = 'PROD-001';
 
 COMMIT;
 
+
+-- SECCIÓN 4: CONSULTAS DE ANÁLISIS Y MONITOREO
+-- Basado en Lab 3 (Optimización de Consultas)
+
+
+-- 4.1 CONSULTAS DE MONITOREO DEL SISTEMA
+-- Consulta 1: Reporte completo de pedidos con información relacionada
+-- Utiliza múltiples JOINs optimizados (Lab 3)
+SELECT 
+    p.id_pedido,
+    p.fecha_pedido,
+    p.estado AS estado_pedido,
+    c.nombre_completo AS cliente,
+    c.email,
+    c.telefono,
+    d.codigo_producto,
+    pr.nombre AS producto,
+    d.cantidad,
+    d.precio_unitario,
+    d.subtotal,
+    p.monto_total,
+    pg.metodo_pago,
+    pg.estado_pago,
+    pg.fecha_pago
+FROM pedidos p
+JOIN clientes c ON c.id_cliente = p.id_cliente
+JOIN detalle_pedido d ON d.id_pedido = p.id_pedido
+JOIN productos pr ON pr.codigo = d.codigo_producto
+LEFT JOIN pagos pg ON pg.id_pedido = p.id_pedido
+ORDER BY p.fecha_pedido DESC, p.id_pedido, d.id_detalle;
