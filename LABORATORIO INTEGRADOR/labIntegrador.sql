@@ -620,3 +620,23 @@ JOIN detalle_pedido d ON d.id_pedido = p.id_pedido
 JOIN productos pr ON pr.codigo = d.codigo_producto
 LEFT JOIN pagos pg ON pg.id_pedido = p.id_pedido
 ORDER BY p.fecha_pedido DESC, p.id_pedido, d.id_detalle;
+
+-- Consulta 2: Productos con stock por debajo del mínimo (alerta crítica)
+SELECT 
+    codigo,
+    nombre,
+    stock_disponible,
+    stock_minimo,
+    (stock_minimo - stock_disponible) AS unidades_faltantes,
+    precio_unitario,
+    estado,
+    CASE 
+        WHEN stock_disponible = 0 THEN 'SIN STOCK'
+        WHEN stock_disponible < stock_minimo / 2 THEN 'CRITICO'
+        ELSE 'BAJO'
+    END AS nivel_alerta
+FROM productos
+WHERE stock_disponible < stock_minimo
+  AND estado = 'ACTIVO'
+ORDER BY stock_disponible ASC, codigo;
+
