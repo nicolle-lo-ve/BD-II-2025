@@ -682,3 +682,34 @@ WHERE p.estado = 'CANCELADO'
 GROUP BY p.id_pedido, p.fecha_pedido, c.nombre_completo, p.monto_total, 
          pg.estado_pago, pg.metodo_pago, pg.id_pago, p.fecha_actualizacion
 ORDER BY p.fecha_actualizacion DESC;
+
+-- Consulta 5: Historial completo de movimientos de stock por producto
+CREATE OR REPLACE FUNCTION obtener_historial_producto(p_codigo VARCHAR)
+RETURNS TABLE (
+    fecha TIMESTAMP,
+    tipo VARCHAR,
+    cantidad INTEGER,
+    stock_previo INTEGER,
+    stock_posterior INTEGER,
+    pedido INTEGER,
+    usuario VARCHAR,
+    observaciones TEXT
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        h.fecha_movimiento,
+        h.tipo_movimiento,
+        h.cantidad,
+        h.stock_anterior,
+        h.stock_nuevo,
+        h.id_pedido_relacionado,
+        h.usuario,
+        h.observaciones
+    FROM historial_stock h
+    WHERE h.codigo_producto = p_codigo
+    ORDER BY h.fecha_movimiento DESC;
+END;
+$$ LANGUAGE plpgsql;
+
+SELECT * FROM obtener_historial_producto('PROD-004');
