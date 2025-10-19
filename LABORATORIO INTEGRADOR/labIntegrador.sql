@@ -727,4 +727,64 @@ SELECT
     (SELECT COUNT(DISTINCT id_cliente) FROM pedidos) AS clientes_con_compras,
     (SELECT COUNT(*) FROM clientes) AS total_clientes;
 
+-- 4.2 ANÁLISIS DE RENDIMIENTO CON EXPLAIN ANALYZE
+-- Basado en Lab 3: Optimización de Consultas
+
+-- Análisis 1: Consulta compleja de pedidos con múltiples JOINs
+EXPLAIN ANALYZE
+SELECT 
+    p.id_pedido,
+    c.nombre_completo,
+    COUNT(d.id_detalle) AS items_pedido,
+    SUM(d.subtotal) AS total
+FROM pedidos p
+JOIN clientes c ON c.id_cliente = p.id_cliente
+JOIN detalle_pedido d ON d.id_pedido = p.id_pedido
+WHERE p.estado = 'confirmado'
+GROUP BY p.id_pedido, c.nombre_completo
+HAVING SUM(d.subtotal) > 100
+ORDER BY total DESC;
+
+
+-- Análisis 2: Búsqueda de productos con filtros múltiples
+EXPLAIN ANALYZE
+SELECT *
+FROM productos
+WHERE estado = 'activo'
+  AND stock_disponible > 0
+  AND precio_unitario BETWEEN 100 AND 500
+ORDER BY stock_disponible ASC;
+
+
+-- Análisis 3: Consulta con subconsulta correlacionada
+EXPLAIN ANALYZE
+SELECT 
+    p.codigo,
+    p.nombre,
+    p.stock_disponible,
+    (SELECT COUNT(*) 
+     FROM detalle_pedido d 
+     JOIN pedidos pd ON pd.id_pedido = d.id_pedido
+     WHERE d.codigo_producto = p.codigo 
+       AND pd.estado IN ('confirmado', 'enviado')
+    ) AS veces_vendido
+FROM productos p
+WHERE p.estado = 'activo'
+ORDER BY veces_vendido DESC
+LIMIT 10;
+
+-- Versión optimizada con JOIN (Lab 3 - reescritura de consultas)
+EXPLAIN ANALYZE
+SELECT 
+    p.codigo,
+    p.nombre,
+    p.stock_disponible,
+    COUNT(d.id_detalle) AS veces_vendido
+FROM productos p
+LEFT JOIN detalle_pedido d ON d.codigo_producto = p.codigo
+LEFT JOIN pedidos pd ON pd.id_pedido = d.id_pedido AND pd.estado IN ('confirmado', 'enviado')
+WHERE p.estado = 'activo'
+GROUP BY p.codigo, p.nombre, p.stock_disponible
+ORDER BY veces_vendido DESC
+LIMIT 10;
 
