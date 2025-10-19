@@ -245,6 +245,7 @@ $$ LANGUAGE plpgsql;
 -- Procesa el pago de un pedido con simulación de aprobación/rechazo
 -- Implementa rollback condicional basado en Lab 5 y Lab 6
 
+
 CREATE OR REPLACE FUNCTION procesar_pago(
     p_id_pedido INTEGER,
     p_metodo_pago VARCHAR(50),
@@ -284,14 +285,14 @@ BEGIN
         -- Simular validación del pago (80% de aprobación)
         -- Genera número aleatorio entre 1 y 10
         v_numero_aleatorio := floor(random() * 10 + 1)::INTEGER;
-        v_pago_aprobado := (v_numero_aleatorio <= 8);
+        v_pago_aprobado := FALSE; -- FORZADO A FALLO , para evitarlo poner (v_numero_aleatorio <= 8)
 
         IF v_pago_aprobado THEN
             -- PAGO APROBADO: Confirmar transacción
             
             -- Actualizar estado del pago
             UPDATE pagos
-            SET estado_pago = 'aprobado'
+            SET estado_pago = 'APROBADO'
             WHERE id_pago = v_id_pago;
 
             -- Actualizar estado del pedido
@@ -326,7 +327,7 @@ BEGIN
             )
             SELECT 
                 d.codigo_producto, 
-                'devolucion',
+                'DEVOLUCION',
                 d.cantidad,
                 p.stock_disponible - d.cantidad,
                 p.stock_disponible,
@@ -490,4 +491,58 @@ LIMIT 2;
 SELECT codigo, nombre, stock_disponible 
 FROM productos 
 WHERE codigo = 'PROD-004';
+
+-- 3.2 PRUEBA DE PAGO FALLIDO CON ROLLBACK
+
+-- PASO 1: VERIFICAR DATOS INICIALES
+SELECT 'DATOS INICIALES ' as info;
+SELECT codigo, nombre, stock_disponible as stock_inicial
+FROM productos 
+WHERE codigo IN ('PROD-005', 'PROD-009');
+
+-- PASO 2: CREAR PEDIDO
+SELECT 'CREANDO PEDIDO' as info;
+SELECT crear_pedido(
+    3,
+    '[{"codigo": "PROD-005", "cantidad": 1}, {"codigo": "PROD-009", "cantidad": 1}]'::JSON
+) as id_pedido_creado;
+
+-- PASO 3: VER STOCK DESPUÉS DE CREAR PEDIDO (debe haber disminuido)
+SELECT 'STOCK DESPUÉS DE CREAR PEDIDO' as info;
+SELECT codigo, nombre, stock_disponible as stock_despues_pedido
+FROM productos 
+WHERE codigo IN ('PROD-005', 'PROD-009');
+
+-- PASO 4: PROCESAR PAGO (FALLIDO - forzado)
+SELECT 'PROCESANDO PAGO (FORZANDO RECHAZO)' as info;
+SELECT procesar_pago(
+    (SELECT MAX(id_pedido) FROM pedidos),
+    'Tarjeta de Crédito',
+    'REF-TEST-FALLIDO'
+) as pago_exitoso;
+
+-- PASO 5: VERIFICAR RESULTADOS FINALES
+SELECT 'RESULTADOS FINALES' as info;
+
+-- Stock final (debe estar restaurado)
+SELECT 'STOCK FINAL' as estado, codigo, nombre, stock_disponible as stock_final
+FROM productos 
+WHERE codigo IN ('PROD-005', 'PROD-009');
+
+-- Estado del pedido (debe estar cancelado)
+SELECT 'ESTADO PEDIDO' as info, id_pedido, estado, monto_total
+FROM pedidos 
+WHERE id_pedido = (SELECT MAX(id_pedido) FROM pedidos);
+
+-- Historial de movimientos (debe mostrar la devolución)
+SELECT 'HISTORIAL MOVIMIENTOS' as info, 
+       codigo_producto, 
+       tipo_movimiento, 
+       cantidad,
+       stock_anterior,
+       stock_nuevo,
+       observaciones
+FROM historial_stock 
+WHERE id_pedido_relacionado = (SELECT MAX(id_pedido) FROM pedidos)
+ORDER BY fecha_movimiento DESC;
 
