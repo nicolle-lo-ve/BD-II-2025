@@ -713,3 +713,18 @@ END;
 $$ LANGUAGE plpgsql;
 
 SELECT * FROM obtener_historial_producto('PROD-004');
+
+-- Consulta 6: Dashboard de métricas generales del sistema
+SELECT 
+    (SELECT COUNT(*) FROM pedidos) AS total_pedidos,
+    (SELECT COUNT(*) FROM pedidos WHERE estado = 'pendiente') AS pedidos_pendientes,
+    (SELECT COUNT(*) FROM pedidos WHERE estado = 'confirmado') AS pedidos_confirmados,
+    (SELECT COUNT(*) FROM pedidos WHERE estado = 'cancelado') AS pedidos_cancelados,
+    (SELECT COUNT(*) FROM productos WHERE estado = 'activo') AS productos_activos,
+    (SELECT COUNT(*) FROM productos WHERE stock_disponible < stock_minimo) AS productos_stock_bajo,
+    (SELECT COUNT(*) FROM productos WHERE stock_disponible = 0) AS productos_sin_stock,
+    (SELECT COALESCE(SUM(monto_total), 0) FROM pedidos WHERE estado IN ('confirmado', 'enviado')) AS ingresos_totales,
+    (SELECT COUNT(DISTINCT id_cliente) FROM pedidos) AS clientes_con_compras,
+    (SELECT COUNT(*) FROM clientes) AS total_clientes;
+
+
