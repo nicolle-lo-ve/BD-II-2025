@@ -431,3 +431,63 @@ BEGIN
     END;
 END;
 $$ LANGUAGE plpgsql;
+
+
+-- SECCIÓN 3: SCRIPTS DE PRUEBA DE CONCURRENCIA
+-- Basado en Lab 5 (Transacciones) y Lab 6 (Control de Concurrencia)
+
+-- 3.1 PRUEBA DE COMPETENCIA POR STOCK LIMITADO
+/*
+INSTRUCCIONES PARA EJECUTAR PRUEBA DE CONCURRENCIA:
+
+1. Abrir DOS terminales de psql conectadas a ecommerce_lab
+2. Ejecutar los siguientes comandos EN PARALELO
+
+*/
+
+-- TERMINAL A (Conexión 1):
+-- Configurar nivel de aislamiento (Lab 5)
+BEGIN TRANSACTION ISOLATION LEVEL READ COMMITTED;
+
+-- Intentar comprar el último Monitor Samsung (PROD-004 con stock=2)
+SELECT crear_pedido(
+    1,  -- ID Cliente
+    '[{"codigo": "PROD-004", "cantidad": 2}]'::JSON
+);
+
+-- ESPERAR 10 segundos antes de confirmar
+SELECT pg_sleep(10);
+
+COMMIT;
+
+-- TERMINAL B (Conexión 2 - ejecutar mientras A está en espera):
+BEGIN TRANSACTION ISOLATION LEVEL READ COMMITTED;
+
+-- Intentar comprar el mismo producto simultáneamente
+SELECT crear_pedido(
+    2,  -- ID Cliente diferente
+    '[{"codigo": "PROD-004", "cantidad": 1}]'::JSON
+);
+
+COMMIT;
+
+-- VERIFICAR RESULTADO
+SELECT 
+    p.id_pedido,
+    p.id_cliente,
+    p.estado,
+    c.nombre_completo,
+    d.codigo_producto,
+    d.cantidad
+FROM pedidos p
+JOIN clientes c ON c.id_cliente = p.id_cliente
+JOIN detalle_pedido d ON d.id_pedido = p.id_pedido
+WHERE d.codigo_producto = 'PROD-004'
+ORDER BY p.fecha_pedido DESC
+LIMIT 2;
+
+-- Verificar stock final
+SELECT codigo, nombre, stock_disponible 
+FROM productos 
+WHERE codigo = 'PROD-004';
+
