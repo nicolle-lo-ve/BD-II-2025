@@ -1,3 +1,5 @@
+-- SECCIÓN 1: CREACIÓN Y CONFIGURACIÓN DE LA BASE DE DATOS
+
 -- Crear la base de datos principal
 CREATE DATABASE ecommerce_lab;
 
@@ -119,4 +121,123 @@ INSERT INTO clientes (nombre_completo, email, telefono, direccion_envio) VALUES
 ('Carlos Rodríguez Silva', 'carlos.rodriguez@email.com', '987654323', 'Calle Lima 789, Cusco'),
 ('Ana Martínez Torres', 'ana.martinez@email.com', '987654324', 'Av. Bolognesi 321, Tacna'),
 ('Luis Fernández Ruiz', 'luis.fernandez@email.com', '987654325', 'Jr. Moquegua 654, Puno');
+
+-- SECCIÓN 2: IMPLEMENTACIÓN DE PROCEDIMIENTOS DE NEGOCIO
+
+-- 2.1 FUNCIÓN: crear_pedido
+-- Crea un nuevo pedido validando stock y reservando productos
+-- Utiliza técnicas de Lab 5 (transacciones) y Lab 6 (SELECT FOR UPDATE)
+
+CREATE OR REPLACE FUNCTION crear_pedido(
+    p_id_cliente INTEGER,
+    p_productos JSON  -- Array de objetos: [{"codigo": "PROD-001", "cantidad": 2}, ...]
+)
+RETURNS INTEGER AS $$
+DECLARE
+    v_id_pedido INTEGER;
+    v_producto JSON;
+    v_codigo_producto VARCHAR(20);
+    v_cantidad INTEGER;
+    v_precio NUMERIC(10,2);
+    v_stock_actual INTEGER;
+    v_stock_anterior INTEGER;
+    v_subtotal NUMERIC(12,2);
+    v_monto_total NUMERIC(12,2) := 0;
+    v_producto_nombre VARCHAR(200);
+    v_estado VARCHAR(20);
+BEGIN
+    -- Iniciar transacción explícita (Lab 5)
+    BEGIN
+        -- Validar que el cliente existe
+        IF NOT EXISTS (SELECT 1 FROM clientes WHERE id_cliente = p_id_cliente) THEN
+            RAISE EXCEPTION 'El cliente con ID % no existe', p_id_cliente;
+        END IF;
+
+        -- Crear el registro del pedido en estado pendiente
+        INSERT INTO pedidos (id_cliente, estado, monto_total)
+        VALUES (p_id_cliente, 'pendiente', 0)
+        RETURNING id_pedido INTO v_id_pedido;
+
+        -- Procesar cada producto del pedido
+        FOR v_producto IN SELECT * FROM json_array_elements(p_productos)
+        LOOP
+            -- Extraer datos del producto
+            v_codigo_producto := v_producto->>'codigo';
+            v_cantidad := (v_producto->>'cantidad')::INTEGER;
+
+            -- Validar cantidad positiva
+            IF v_cantidad <= 0 THEN
+                RAISE EXCEPTION 'La cantidad debe ser mayor a cero para el producto %', v_codigo_producto;
+            END IF;
+
+            -- Obtener información del producto con bloqueo exclusivo (Lab 6)
+            -- Esto previene condiciones de carrera en ambiente concurrente
+            SELECT precio_unitario, stock_disponible, nombre, estado
+            INTO v_precio, v_stock_actual, v_producto_nombre, v_estado
+            FROM productos
+            WHERE codigo = v_codigo_producto
+            FOR UPDATE;  -- Bloqueo explícito para concurrencia
+
+            -- Validar que el producto existe
+            IF NOT FOUND THEN
+                RAISE EXCEPTION 'El producto % no existe', v_codigo_producto;
+            END IF;
+
+            -- Validar que el producto está activo
+            IF v_estado != 'activo' THEN
+                RAISE EXCEPTION 'El producto % no está disponible para venta', v_producto_nombre;
+            END IF;
+
+            -- Validar stock suficiente
+            IF v_stock_actual < v_cantidad THEN
+                RAISE EXCEPTION 'Stock insuficiente para %: disponible %, solicitado %', 
+                    v_producto_nombre, v_stock_actual, v_cantidad;
+            END IF;
+
+            -- Guardar stock anterior para auditoría
+            v_stock_anterior := v_stock_actual;
+
+            -- Reservar el stock (reducir inventario)
+            UPDATE productos
+            SET stock_disponible = stock_disponible - v_cantidad,
+                fecha_actualizacion = CURRENT_TIMESTAMP
+            WHERE codigo = v_codigo_producto;
+
+            -- Calcular subtotal
+            v_subtotal := v_precio * v_cantidad;
+            v_monto_total := v_monto_total + v_subtotal;
+
+            -- Insertar detalle del pedido
+            INSERT INTO detalle_pedido (id_pedido, codigo_producto, cantidad, precio_unitario, subtotal)
+            VALUES (v_id_pedido, v_codigo_producto, v_cantidad, v_precio, v_subtotal);
+
+            -- Registrar movimiento en historial de stock (auditoría completa)
+            INSERT INTO historial_stock (
+                codigo_producto, tipo_movimiento, cantidad, 
+                stock_anterior, stock_nuevo, id_pedido_relacionado, observaciones
+            )
+            VALUES (
+                v_codigo_producto, 'salida', v_cantidad,
+                v_stock_anterior, v_stock_anterior - v_cantidad, v_id_pedido,
+                'Reserva de stock para pedido #' || v_id_pedido
+            );
+        END LOOP;
+
+        -- Actualizar monto total del pedido
+        UPDATE pedidos
+        SET monto_total = v_monto_total,
+            fecha_actualizacion = CURRENT_TIMESTAMP
+        WHERE id_pedido = v_id_pedido;
+
+        -- Retornar ID del pedido creado exitosamente
+        RETURN v_id_pedido;
+
+    EXCEPTION
+        WHEN OTHERS THEN
+            -- Manejo de errores con rollback automático (Lab 5)
+            RAISE NOTICE 'Error al crear pedido: %', SQLERRM;
+            RETURN NULL;
+    END;
+END;
+$$ LANGUAGE plpgsql;
 
