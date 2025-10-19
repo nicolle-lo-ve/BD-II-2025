@@ -73,3 +73,30 @@ CREATE TABLE historial_stock (
     observaciones TEXT
 );
 
+-- 1.2 CREACIÓN DE ÍNDICES PARA OPTIMIZACIÓN
+
+-- Índices B-tree para búsquedas por rangos y ordenamiento
+CREATE INDEX idx_productos_stock ON productos(stock_disponible);
+CREATE INDEX idx_productos_nombre ON productos(nombre);
+CREATE INDEX idx_pedidos_cliente ON pedidos(id_cliente);
+CREATE INDEX idx_pedidos_fecha ON pedidos(fecha_pedido DESC);
+CREATE INDEX idx_detalle_pedido ON detalle_pedido(id_pedido);
+CREATE INDEX idx_historial_producto ON historial_stock(codigo_producto);
+CREATE INDEX idx_historial_fecha ON historial_stock(fecha_movimiento DESC);
+
+-- Índices Hash para búsquedas exactas (Lab 2)
+CREATE INDEX idx_productos_estado_hash ON productos USING HASH(estado);
+CREATE INDEX idx_pedidos_estado_hash ON pedidos USING HASH(estado);
+CREATE INDEX idx_pagos_estado_hash ON pagos USING HASH(estado_pago);
+
+-- Índice compuesto para consultas frecuentes (Lab 3)
+CREATE INDEX idx_productos_estado_stock ON productos(estado, stock_disponible) 
+    WHERE estado = 'ACTIVO';
+
+-- Índice parcial para pedidos activos (Lab 3)
+CREATE INDEX idx_pedidos_activos ON pedidos(estado, fecha_pedido) 
+    WHERE estado IN ('PENDIENTE', 'CONFIRMADO');
+
+
+
+
