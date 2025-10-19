@@ -97,6 +97,26 @@ CREATE INDEX idx_productos_estado_stock ON productos(estado, stock_disponible)
 CREATE INDEX idx_pedidos_activos ON pedidos(estado, fecha_pedido) 
     WHERE estado IN ('PENDIENTE', 'CONFIRMADO');
 
+-- 1.3 INSERCIÓN DE DATOS DE PRUEBA
 
+-- Insertar productos con diferentes niveles de stock
+INSERT INTO productos (codigo, nombre, descripcion, precio_unitario, stock_disponible, stock_minimo) VALUES
+('PROD-001', 'Laptop HP Pavilion', 'Laptop 15.6" Intel i5 8GB RAM 256GB SSD', 2500.00, 15, 5),
+('PROD-002', 'Mouse Inalámbrico Logitech', 'Mouse óptico inalámbrico ergonómico', 45.00, 50, 10),
+('PROD-003', 'Teclado Mecánico Razer', 'Teclado mecánico RGB switches blue', 180.00, 8, 5),
+('PROD-004', 'Monitor Samsung 24"', 'Monitor Full HD IPS 75Hz', 450.00, 2, 3),  -- Stock muy bajo
+('PROD-005', 'Auriculares Bluetooth Sony', 'Auriculares over-ear con cancelación de ruido', 320.00, 1, 5),  -- Stock crítico
+('PROD-006', 'Webcam Logitech C920', 'Cámara web Full HD 1080p', 150.00, 25, 8),
+('PROD-007', 'SSD Kingston 1TB', 'Disco sólido NVMe M.2 1TB', 280.00, 30, 10),
+('PROD-008', 'Router TP-Link AC1750', 'Router WiFi dual band AC1750', 95.00, 12, 5),
+('PROD-009', 'Memoria RAM Corsair 16GB', 'Memoria DDR4 3200MHz 16GB', 180.00, 1, 5),  -- Stock crítico
+('PROD-010', 'Fuente de Poder Corsair 650W', 'Fuente modular 80+ Gold', 220.00, 6, 4);
 
+-- Insertar clientes
+INSERT INTO clientes (nombre_completo, email, telefono, direccion_envio) VALUES
+('Juan Pérez García', 'juan.perez@email.com', '987654321', 'Av. Arequipa 123, Lima'),
+('María González López', 'maria.gonzalez@email.com', '987654322', 'Jr. Puno 456, Arequipa'),
+('Carlos Rodríguez Silva', 'carlos.rodriguez@email.com', '987654323', 'Calle Lima 789, Cusco'),
+('Ana Martínez Torres', 'ana.martinez@email.com', '987654324', 'Av. Bolognesi 321, Tacna'),
+('Luis Fernández Ruiz', 'luis.fernandez@email.com', '987654325', 'Jr. Moquegua 654, Puno');
 
