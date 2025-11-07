@@ -1,0 +1,35 @@
+-- Tabla de cuentas
+CREATE TABLE cuentas (
+    cuenta_id VARCHAR(20) PRIMARY KEY,
+    titular VARCHAR(100) NOT NULL,
+    saldo DECIMAL(12,2) NOT NULL CHECK (saldo >= 0),
+    sucursal VARCHAR(50) DEFAULT 'CUSCO'
+);
+
+-- Tabla de log de transacciones distribuidas
+CREATE TABLE transaction_log (
+    txn_id VARCHAR(50) PRIMARY KEY,
+    estado VARCHAR(20) CHECK (estado IN ('PREPARE', 'COMMIT', 'ABORT')),
+    cuenta_id VARCHAR(20),
+    monto DECIMAL(12,2),
+    tipo VARCHAR(10) CHECK (tipo IN ('DEBITO', 'CREDITO')),
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Tabla de votos 2PC
+CREATE TABLE votos_2pc (
+    txn_id VARCHAR(50),
+    nodo VARCHAR(50),
+    voto VARCHAR(10) CHECK (voto IN ('COMMIT', 'ABORT')),
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (txn_id, nodo)
+);
+
+-- Insertar datos de prueba
+INSERT INTO cuentas (cuenta_id, titular, saldo) VALUES
+    ('CUSCO-001', 'Pedro Mamani', 4000.00),
+    ('CUSCO-002', 'Rosa Quispe', 5500.00),
+    ('CUSCO-003', 'Luis Huamán', 7000.00);
+
+-- Verificar datos
+SELECT * FROM cuentas;
