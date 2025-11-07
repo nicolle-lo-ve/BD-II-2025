@@ -1,0 +1,267 @@
+//  PARTE 2: CREAR BASE DE DATOS Y COLECCIONES 
+
+// paso 3: Crear base de datos
+use tienda_online
+
+// paso 4: Verificar base de datos actual
+db
+
+// paso 5: Ver todas las bases de datos
+show dbs
+
+//  PARTE 3: OPERACIONES CRUD - CREATE 
+
+// paso 6: Insertar un producto (insertOne)
+db.productos.insertOne({
+    nombre: "Laptop Dell Inspiron 15",
+    categoria: "Computadoras",
+    precio: 2500,
+    stock: 15,
+    especificaciones: {
+        procesador: "Intel Core i7",
+        ram: "16GB",
+        almacenamiento: "512GB SSD",
+        pantalla: "15.6 pulgadas"
+    },
+    tags: ["Laptop", "dell", "computadora"],
+    fechaIngreso: new Date()
+})
+
+// paso 7: Insertar múltiples productos (insertMany)
+db.productos.insertMany([
+    {
+        nombre: "Mouse Logitech MX Master",
+        categoria: "Accesorios",
+        precio: 120,
+        stock: 50,
+        especificaciones: {
+            tipo: "Inalambrico",
+            conectividad: "Bluetooth y USB",
+            bateria: "Hasta 70 días"
+        },
+        tags: ["mouse", "Logitech", "inalambrico"],
+        fechaIngreso: new Date()
+    },
+    {
+        nombre: "Teclado Mecánico Corsair K95",
+        categoria: "Accesorios",
+        precio: 200,
+        stock: 30,
+        especificaciones: {
+            tipo: "Mecánico",
+            switches: "Cherry MX Red",
+            retroiluminacion: "RGB"
+        },
+        tags: ["teclado", "corsair", "mecanico", "rgb"],
+        fechaIngreso: new Date()
+    },
+    {
+        nombre: "Monitor LG UltraWide 34",
+        categoria: "Monitores",
+        precio: 800,
+        stock: 10,
+        especificaciones: {
+            tamaño: "34 pulgadas",
+            resolucion: "3440x1440",
+            tipo: "IPS",
+            frecuencia: "144Hz"
+        },
+        tags: ["monitor", "lg", "ultrawide"],
+        fechaIngreso: new Date()
+    },
+    {
+        nombre: "Auriculares Sony WH-1000XM5",
+        categoria: "Audio",
+        precio: 350,
+        stock: 25,
+        especificaciones: {
+            tipo: "Over-ear",
+            conectividad: "Bluetooth 5.2",
+            cancelacionRuido: "Activa",
+            autonomia: "30 horas"
+        },
+        tags: ["auriculares", "sony", "bluetooth", "noise-cancelling"],
+        fechaIngreso: new Date()
+    }
+])
+
+// paso 8: Verificar inserción
+db.productos.countDocuments()
+
+//  PARTE 4: OPERACIONES CRUD - READ 
+
+// paso 9: Consultar todos los documentos
+db.productos.find()
+db.productos.find().pretty()
+
+// paso 10: Consultar un solo documento
+db.productos.findOne()
+
+// paso 11: Consultas con filtros simples
+db.productos.find({ categoria: "Accesorios" })
+db.productos.find({ precio: 200 })
+db.productos.find({ stock: { $gt: 20 } })
+
+// paso 12: Operadores de comparación
+db.productos.find({ precio: { $gte: 100, $lte: 300 } })
+db.productos.find({ stock: { $lt: 15 } })
+db.productos.find({ categoria: { $ne: "Audio" } })
+
+// paso 13: Consultas con operadores lógicos
+db.productos.find({
+    $and: [
+        { categoria: "Accesorios" },
+        { precio: { $lt: 150 } }
+    ]
+})
+db.productos.find({
+    $or: [
+        { categoria: "Audio" },
+        { categoria: "Monitores" }
+    ]
+})
+
+// paso 14: Consultas en documentos anidados
+db.productos.find({ "especificaciones.procesador": { $regex: "Intel" } })
+db.productos.find({ "especificaciones.conectividad": { $regex: "Bluetooth" } })
+
+// paso 15: Consultas en arrays
+db.productos.find({ tags: "inalambrico" })
+db.productos.find({ tags: { $all: ["mouse", "Logitech"] } })
+
+// paso 16: Proyección (seleccionar campos específicos)
+db.productos.find({}, { nombre: 1, precio: 1, _id: 0 })
+db.productos.find({}, { especificaciones: 0 })
+
+//  PARTE 5: OPERACIONES CRUD - UPDATE 
+
+// paso 17: Actualizar un documento (updateOne)
+db.productos.updateOne(
+    { nombre: "Laptop Dell Inspiron 15" },
+    { $set: { precio: 2600 } }
+)
+
+// Verificar el cambio
+db.productos.findOne({ nombre: "Laptop Dell Inspiron 15" })
+
+// paso 18: Operador $inc (incrementar)
+db.productos.updateOne(
+    { nombre: "Mouse Logitech MX Master" },
+    { $inc: { stock: -5 } }
+)
+
+// paso 19: Agregar campos nuevos
+db.productos.updateOne(
+    { nombre: "Monitor LG UltraWide 34" },
+    { $set: { descuento: 10 } }
+)
+
+// paso 20: Actualizar arrays
+db.productos.updateOne(
+    { nombre: "Auriculares Sony WH-1000XM5" },
+    { $push: { tags: "premium" } }
+)
+
+// paso 21: Actualizar múltiples documentos (updateMany)
+db.productos.updateMany(
+    { categoria: "Accesorios" },
+    { $set: { enOferta: false } }
+)
+
+// Verificar
+db.productos.find({ categoria: "Accesorios" })
+
+//  PARTE 6: OPERACIONES CRUD - DELETE 
+
+// paso 22: Crear documentos temporales
+db.productos.insertMany([
+    {
+        nombre: "Producto Temporal 1",
+        categoria: "Prueba",
+        precio: 10,
+        stock: 1
+    },
+    {
+        nombre: "Producto Temporal 2",
+        categoria: "Prueba",
+        precio: 20,
+        stock: 2
+    }
+])
+
+// paso 23: Eliminar un documento (deleteOne)
+db.productos.deleteOne({ nombre: "Producto Temporal 1" })
+
+// paso 24: Eliminar múltiples documentos (deleteMany)
+db.productos.deleteMany({ categoria: "Prueba" })
+
+// Verificar que se eliminaron
+db.productos.find({ categoria: "Prueba" })
+
+//  PARTE 7: MODELADO - EMBEDDING VS REFERENCING 
+
+// paso 25: Crear colección de clientes con EMBEDDING
+db.clientes.insertOne({
+    nombre: "Juan Pérez",
+    email: "juan.perez@mail.com",
+    telefono: "+51987654321",
+    direcciones: [
+        {
+            tipo: "Principal",
+            calle: "Av. Arequipa 1234",
+            distrito: "Miraflores",
+            ciudad: "Lima",
+            codigoPostal: "15074"
+        },
+        {
+            tipo: "Trabajo",
+            calle: "Jr. Ucayali 567",
+            distrito: "Cercado",
+            ciudad: "Lima",
+            codigoPostal: "15001"
+        }
+    ],
+    fechaRegistro: new Date()
+})
+
+// paso 26: Crear colección de pedidos con REFERENCING
+var clienteId = db.clientes.findOne({ email: "juan.perez@mail.com" })._id
+
+db.pedidos.insertOne({
+    cliente_id: clienteId,
+    fecha: new Date(),
+    estado: "Procesando",
+    items: [
+        {
+            producto: "Laptop Dell Inspiron 15",
+            cantidad: 1,
+            precioUnitario: 2600
+        },
+        {
+            producto: "Mouse Logitech MX Master",
+            cantidad: 2,
+            precioUnitario: 120
+        }
+    ],
+    total: 2840,
+    metodoPago: "Tarjeta de crédito"
+})
+
+// paso 27: Consultar datos referenciados
+var pedido = db.pedidos.findOne()
+db.clientes.findOne({ _id: pedido.cliente_id })
+
+//  PARTE 8: CONSULTAS AVANZADAS 
+
+// paso 28: Ordenar resultados
+db.productos.find().sort({ precio: 1 })
+db.productos.find().sort({ precio: -1 })
+db.productos.find().sort({ categoria: 1, precio: -1 })
+
+// paso 29: Limitar resultados
+db.productos.find().sort({ precio: -1 }).limit(3)
+db.productos.find().sort({ precio: -1 }).skip(2).limit(3)
+
+// paso 30: Contar con filtros
+db.productos.countDocuments({ categoria: "Accesorios" })
+db.productos.countDocuments({ precio: { $gt: 500 } })
