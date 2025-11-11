@@ -1,0 +1,31 @@
+Tipos de Datos Personalizados en PostgreSQL
+  Tipos creados por el usuario, para extender a los tipos nativos.
+  Si los tipos nativos no son suficientes para representar la necesidad de manera especifica se crean los nuevos tipos de datos.
+  Los tipso de datos:
+    - enriquecen la semantica
+    - centralizan validacion y consistencia
+  Si no creamos tipos de datos pero los necesitamos tendemos a crear incosistencias en tablas.
+
+  DOMAIN: Es de los mas simples, tiene restricciones check, not null y default.
+  - Facilita el mantenimiento
+  - Aflecta todas las tablas que las usan
+  - Para gmails, dnis y rucs
+  ENUM: Conjunto limitado de valores posibles (por ejemplo:estados)
+  - Asegura que solo se usen valores permitidos
+  - Requiere comandos especiales
+  - No es felixble para cambios constantes
+  COMPOSITE: Estructura de varios campos agrupados en un solo tipo (objeto - clase sin atributos)
+  - agrupa datos relacionados
+  - se puede usar en funciones
+  - representa estructuras complejas
+  - No se indexan campos de manera sencilla
+  - Dificil agregar filtros
+  RANGE: Intervalos de valores continuos usan simbolos [()] para contorlar si los limites son abiertos o cerrados.
+  - Usa indices GIST
+  - utiles para manejar fechas, versiones
+  - gestion academica
+  BASETYPE: tdd definido por el usuario, proporciona sus propias funciones.
+  - Mayor control en el programa con extensiones
+  - requiere conocmientos de lenguaje c
+  . afecta la bd si esta mal implementado
+  - Geolocalizacion avanzada, machinglearning
