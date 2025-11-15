@@ -1,0 +1,86 @@
+Tecnica politicas y controles para porteger la bd.
+
+proytege activos criticos: datos sensibles
+mantiene laintegridad: asegura que sean los datos correctos
+cumplimiento de leyes:
+
+Amenazas
+Ataques extertnos: malware. sql injection
+amemnanza internas: usuarios lmalintencionados
+errores y fallos humanos
+
+principios
+confidencialidad: Soo perosnas autporizadas
+integridad: informacion corrcta
+Dispnibilidad: datos accesibles
+
+Buenas practicas generales:
+Contresañas segurasbacups
+gestion de usuarios
+principio
+
+USUARIOS Y ROLES
+Aplicaion o porcesos para conectarse a SGDB y ejecuta acciones de acuerdoa  sus permisos
+- roles que agrupan permisos
+- grant, otorga permisos
+deny, niega permisos
+Revoke quita permisos otorgados
+
+Que es un usaurio?
+usuario de bd vs cuenta de sistema
+- login permite entrar al servidor
+
+Accerder usuaruios
+Autenticacion local
+autenticacion remota, accede r a al base de datos desde otra compuatdora
+
+ROL: conjunbto de perimisos que tendra un usuaurio
+
+simplifica la gestion:
+mantiene cnsisitencia
+faciliatan escalabilidad
+
+usuario vs rol
+u es una identida visual, se le asiggna rioles
+roles, cpnujto de permisos, no se necesita autenticarse por si mismo
+
+jerarquia de seguridad
+1. permisos: acciones individuales
+2. roles
+3. usuaurios: role sy permisos
+
+
+ciclo de vida 
+crear, modificar, deshabilitar eliminar
+
+roles personalizadps y roles predefinidos, 
+
+PERMISOS PILITCAS Y PRACTICA
+
+en la bd: no conceder permisos absolutos, genera errorw criticos
+beneficio: limita el daño 
+
+Tipos de permisois
+permisos de datos DML: interactuar con datos
+2. PErmisos de estteruxta: crear, altera y eliminar ddl
+PErmisos de conytor; gtrrand y revoke dcl
+
+Ejemplo:
+Crea rol: no se asignan permisos directamente, se crean roles y se asianga usuarios al rol
+Asigar minimo permiso
+asignar usario al rol
+
+
+¿Cómo se puede prevenir el SQL Injection?
+
+Respuesta:
+
+Usar queries parametrizadas.
+
+Escapar correctamente las entradas.
+
+Validar y sanitizar datos del usuario.
+
+Usar procedimientos almacenados (bien implementados).
+
+Deshabilitar mensajes de error detallados a usuarios externos.
