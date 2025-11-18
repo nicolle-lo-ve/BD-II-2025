@@ -1,0 +1,61 @@
+AUDITORIA Y MONITOREO
+---
+INTRO
+DEterminar quien, que, cuadno y como
+---
+fundamentos
+Acciones que se han realizado en la bd, 
+hisotrico y periodico
+
+auditoria de base de datos
+evaluaciond seguridad y controlloes
+cumppliemtno normativos
+identifacion de brechas puntos debiles del sistema
+
+monitorea, es contantes, se encarga de visaulizar picos donde el sistema se puede ver afectado
+deteccion tmeprana
+refuerxzo de pilitcas
+analisis forense despues de un incidente
+
+mecanismo tecnioco de trazabilidad registros y logs forenses
+secuencia cronologica documentada de eventos
+
+registro de consutla genereal, rastrea directamente acciones
+regostro binario
+registro de reahcer havilitado en ssitema oracle
+
+implemenatcion de mevcnaimso nativos
+nivel completo todo tipo de acciones realizadas
+n pertintene
+n esoecifco grupo de usarios que muestra un riesgo
+
+lgs nativos 
+herramientas nativas
+
+dam minitoria de actividad debd
+
+limitacions criticas de mecanismo de auditria nativos
+-overhead
+-fragmentacion y visibilidad centralizada deficiente; uno por nodo
+-escalabilidad y cumplimiento basico
+-alertas ineficaces ygestion manual
+
+ventajas estrategicas de monitoreo dam de terceros
+- registro centraliado y unificado
+- cumplimiento automatizado y lista oara la regulacion
+- analisis de comportamiento avanzado
+- motor de politicas y alertas en tiempo real
+
+cumplimiento normativo y forense
+- gdpr () u europea
+- hippa ()eeuu
+- pcidss ()tarjeta
+- informacion fianciaera
+
+fasea garantizar un anailiis riguroso
+- fase de configuracion de audotoria
+- fase de exploracion y evaluacion de evidencia
+- fase de investigacion de herramientas forenses
+
+DAM Database Activity Monitoring <<Monitoreo de Actividad de Bases de Datos
+
