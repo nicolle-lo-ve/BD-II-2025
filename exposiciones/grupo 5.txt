@@ -1,0 +1,66 @@
+Ataque a bases de datos y como protegerse
+INTRODUCCION
+bd alamacenan info valiosa de una organizacion, eviatr ataques par aevotar perdidas economicas, legales y de reputación
+
+PQ SE ATAC UNA BD?
+- ROBAR INFORMACION
+-modifcar o destriuir datos
+- secuestrar sistemas
+la bd contiene valor real
+
+AMENZAS INTERNAS
+- PROVIENEN DE EMEPLEADOS I SUARIOS CON ACCESO LEGITIMO
+- pueden ser malientencadnis o simplemente descuidoa
+suceden por rpivilegios mal asignados
+
+ERRO HUMANO
+contraseñas debiles, copartir credenciales, 
+
+VULENRABILIDADES DEL SOFTWARE
+- vulnerabilidades
+falta de parche sy actualizaciones
+- malware
+destruye, altera datos, o abre puertas trasera
+
+inyeccion sql/nosql
+Atacante utiliza comandos maliciosos, dentro de formualiros o entradas web
+
+entra sin usuario y contraseña, para evitarlo se peuden restirngir caracteres en los formularios, o usar waff cortafuegos en paginas web, que indentifica tipo de patrone spar ano madarla ala base d edatos
+
+DEsbordamiento de buffer
+ocurre cuando un prigram recibe mas datos de los que su memoria puede manejar, el riesgo real es que se puede sobreescribri aprtes en memorio como en c o c++ logrando ejecutar codigo no autorizado (no suicede en python y java porque si se asegura la memoria)
+
+ataques a copias de seguirdad
+SLuene tener menos porteccion que la bd original
+Puede acceder a datos sensible completos, sin necesidad de atacar directamente el sistema prinicipal
+
+ataques dos y ddos
+dos:saturan el servidor con solicitudes falsas hasta que no pueda repsonder
+ddo: se envian desd emultples equipos loe que los vuelve mas potentes y dificles de defender
+ambos interrumpen servcios criticos sin necesidad de robar nada, pero pueden paralizar toda la operacion.
+
+Consecuencias
+perdiad o cirrupcion de los datos, afectando porcesos clave
+costos economicos altos por recuperacion y detencion de operaciones
+multas por seguridad de datos
+daño a la reputacion 
+
+SEÑALES DE ALERTA
+Accesos inusauales
+intentos de loggeos fallidos
+cambios no autorizados, accesos que se quitan, medidas de seguirdad que se quitan
+baja repentina en el rendimiento, 
+
+ATAQUES A BD
+Seguridad fisica
+cifrado: + seguridad en respaldos, aplicarse tanto en reposo como en transito, evitando que se pueda leer infromacion
+    Proteccionde resaplados(estar cifrados, tener accesos limitados, estar alamcenados en sitios seguros)
+control de accesos: prinicpio de minimo privilegio, gestion de roles, autentificaicon multifactor
+actualizaciones constantes
+auditorias
+
+seguridad de base de datos es funamtal para toda organizacio
+mantener sistemas actualizados y eduicar usuarios
+mas segfura mas dificl de acceder a ella, mas dificl de usar mas vulnerable
+
+que ataques de los que se han msotrado son los mas comunes en bd nosql?
